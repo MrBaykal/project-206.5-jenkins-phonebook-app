@@ -48,8 +48,66 @@ pipeline {
                     '''
                 }
             }
+            stage('Installing eksctl, kubectl and creating EKS Cluster and deploying Phonebook Application') {
+                steps {
+                    echo 'Installing eksctl, kubectl and creating EKS Cluster and deploying Phonebook Application'
+                    sh '''
+                    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+                    eksctl version
+
+                    curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.26.4/2023-05-11/bin/linux/amd64/kubectl
+                    chmod +x ./kubectl
+                    kubectl version --short --client
+                    
+                    eksctl create cluster -f 03_cluster/cluster.yaml
+                    
+                    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.0/deploy/static/provider/cloud/deploy.yaml
+
+                    sleep 200
+
+                    cd 04_yaml_files
+
+                    kubectl apply -f .
+
+                    echo "Now we can see our application for 600 seconds from the DNS address of the Load Balancer."
+
+                    until [[ -e /var/lib/jenkins/workspace/phonebook-jenkins/file1  ]] ; do echo "there is no file" ; sleep 200 ; done
+
+                    '''
+                    
+                }
         }
+    }
+    post {
+        always {
+            echo 'Deleting all local images'
+            sh 'docker image prune -af'
+
+            echo 'Delete the Image Repository on ECR'
+            sh '''
+                aws ecr delete-repository \
+                  --repository-name ${APP_REPO_NAME} \
+                  --region ${AWS_REGION}\
+                  --force
+                '''
+
+            echo 'Delete the Application and yaml files'            
+            sh '''
+            cd 04_yaml_files
+            pwd
+            kubectl delete -f .
+            '''
+
+            echo 'Tear down the EKS Cluster'
+            sh '''
+            cd 03_cluster
+            pwd
+            eksctl delete cluster -f cluster.yaml
+            '''
         }
+    }
+}
+        
 
 // ;         Bu komut, Jenkinsfile'da PATH ortam değişkenini ayarlar. PATH değişkeni, bilgisayarınızda bulunan komutları ve programları bulmak için kullanılan bir yol listesidir. Bu komut, PATH değişkenine /tmp ve /var/lib/jenkins/workspace/phonebook-jenkins dizinlerini ekler.
 // ; Bu komutun amacı, Jenkinsfile'da kullanılan komutların ve programların bu dizinlerde bulunmasını sağlamaktır. Örneğin, /tmp dizini, geçici dosyalar için kullanılır. Jenkinsfile'da geçici dosyalar kullanıyorsanız, bu dosyaları /tmp dizininde bulabilmek için bu komutu kullanmanız gerekir.
