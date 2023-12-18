@@ -69,9 +69,9 @@ pipeline {
 
                     kubectl apply -f .
 
-                    echo "Now we can see our application for 600 seconds from the DNS address of the Load Balancer."
+                    echo "Now we can see our application for 300 seconds from the DNS address of the Load Balancer."
 
-                    until [[ -e /var/lib/jenkins/workspace/phonebook-jenkins/file1  ]] ; do echo "there is no file" ; sleep 200 ; done
+                    sleep 300
 
                     '''
                     
