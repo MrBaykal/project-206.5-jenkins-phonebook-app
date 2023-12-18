@@ -15,7 +15,7 @@ spec:
         app: webserver-deploy
     spec:
       containers:
-      - image: 046402772087.dkr.ecr.us-east-1.amazonaws.com/clarusway-repo/phonebook-app:web
+      - image: 374821970250.dkr.ecr.us-east-1.amazonaws.com/clarusway-repo/phonebook-app:web
         name: webserver
         ports:
         - containerPort: 80

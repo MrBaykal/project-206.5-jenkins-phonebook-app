@@ -15,7 +15,7 @@ spec:
         app: resultserver-deploy
     spec:
       containers:
-      - image: 046402772087.dkr.ecr.us-east-1.amazonaws.com/clarusway-repo/phonebook-app:result
+      - image: 374821970250.dkr.ecr.us-east-1.amazonaws.com/clarusway-repo/phonebook-app:result
         name: resultserver
         ports:
         - containerPort: 80
